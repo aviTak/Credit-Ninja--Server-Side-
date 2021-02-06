@@ -1,0 +1,25 @@
+{
+  "name": "App",
+  "version": "0.0.1",
+  "description": "Search App",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "apollo-server-express": "^2.19.2",
+    "dotenv": "^8.2.0",
+    "mongoose": "^5.11.13",
+    "cookie-parser": "^1.4.5",
+    "jsonwebtoken": "^8.5.1",
+    "request": "^2.88.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "author": "Avi Takiyar",
+  "license": "ISC"
+}

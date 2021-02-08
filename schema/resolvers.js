@@ -46,7 +46,7 @@ const resolvers = {
               path: "Employer_Name",
               query: search,
               fuzzy: {
-                maxEdits: 2,
+                maxEdits: 1,
                 prefixLength: 1,
                 maxExpansions: 256
               }

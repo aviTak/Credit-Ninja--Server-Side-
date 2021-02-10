@@ -30,8 +30,8 @@ const typeDefs = gql`
   }
   
   type Mutation{
-    sendOtp(number: String!): Status
-    verify(session: String!, otp: String!, password: String!, name: String!): User
+    sendOtp(number: String!, old: Boolean!): Status
+    verify(session: String!, otp: String!, password: String!, name: String, email: String, old: Boolean!): User
     login(number: String!, password: String!): User
     logout: Status
   }

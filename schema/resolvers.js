@@ -6,6 +6,7 @@ const Request = require("../models/request.js");
 const Bcrypt = require("bcryptjs");
 const request = require("request");
 const jwt = require("jsonwebtoken");
+const { isEmail } = require("validator");
 
 const ObjectId = id => {
   return new mongoose.Types.ObjectId(id);
@@ -63,7 +64,21 @@ const resolvers = {
   },
 
   Mutation: {
-    sendOtp: async (_, { number }, context) => {
+    sendOtp: async (_, { number, old }, context) => {
+      /* Search if the user exists */
+
+      let me = await User.findOne({ number });
+
+      if (old && !me) {
+        // If the client side says that it is an old user but the account does not exist in the records
+        throw new Error("You don't have an account");
+      }
+
+      if (!old && me) {
+        // If the client side says that it is a new user but an account exist in the records
+        throw new Error("You already have an account");
+      }
+
       let value = false,
         message = null;
 
@@ -101,11 +116,44 @@ const resolvers = {
       return { value, message };
     },
 
-    verify: async (_, { session, otp, password, name }, context) => {
+    verify: async (
+      _,
+      { session, otp, password, name, email, old },
+      context
+    ) => {
+      /* Finding the phone no. */
+
+      let req = await Request.findOne({ session });
+      if (!req) return null;
+
+      let no = req.number;
+      let me = await User.findOne({ number: no });
+
+      if (old && !me) {
+        // If the client side says that it is an old user but the account does not exist in the records
+        throw new Error("You don't have an account");
+      }
+
+      if (!old && me) {
+        // If the client side says that it is a new user but an account exist in the records
+        throw new Error("You already have an account");
+      }
+
+      /* Check if password has more than 8 characters */
+
       if (password.length < 8)
         throw new Error("Password should have more than 8 characters");
 
-      if (!name) throw new Error("Name is mandatory");
+      /* New user - first timer */
+
+      if (!me) {
+        // Check if name is valid
+        if (!name) throw new Error("Name is mandatory");
+
+        // Check if email is valid
+        if (!email || !isEmail(email))
+          throw new Error("Please enter a valid email");
+      }
 
       let user = {},
         work = true;
@@ -128,22 +176,18 @@ const resolvers = {
         });
       });
 
-      if (!work) return null;
+      if (!work) return null; // Invalid OTP or the OTP expired
 
-      let a = await Request.findOne({ session });
-      if (!a) return null;
-
-      let no = a.number;
-      let b = await User.findOne({ number: no });
-
-      if (b) {
-        user["_id"] = b._id;
-        user["service"] = b.service;
-        user["name"] = b.name;
+      /* If account exists */
+      
+      if (me) {
+        user["_id"] = me._id;
+        user["service"] = me.service;
+        user["name"] = me.name;
 
         await User.updateOne(
           { number: no },
-          { $set: { password: Bcrypt.hashSync(password, 10), name: name } },
+          { $set: { password: Bcrypt.hashSync(password, 10) } },
           { upsert: false, runValidators: true, context: "query" }
         );
       } else {
@@ -151,12 +195,13 @@ const resolvers = {
           number: no,
           password: Bcrypt.hashSync(password, 10),
           service: "free",
-          name: name
+          name: name,
+          email: email
         });
 
         user["_id"] = c._id;
-        user["service"] = c.service; // free
-        user["name"] = name
+        user["service"] = c.service; // "free"
+        user["name"] = c.name; // name
       }
 
       // Remove OTP request
@@ -168,7 +213,7 @@ const resolvers = {
       var token;
 
       token = jwt.sign(
-        { _id: user._id, service: user.service, name: name },
+        { _id: user._id, service: user.service, name: user.name },
         process.env.JWT,
         {
           algorithm: "HS256",
@@ -183,24 +228,19 @@ const resolvers = {
         maxAge: 1 * 12 * 60 * 60 * 1000
       });
 
-      return { _id: user._id, service: user.service, name: name };
+      return { _id: user._id, service: user.service, name: user.name };
     },
 
     login: async (_, { number, password }, context) => {
-      let user = {};
-      let a = await User.findOne({ number });
+      let me = await User.findOne({ number });
 
-      if (!a) return null;
-
-      user["_id"] = a._id;
-      user["service"] = a.service;
-      user["name"] = a.name;
+      if (!me) return null; // User does not exist
 
       var token;
 
-      if (Bcrypt.compareSync(password, a.password)) {
+      if (Bcrypt.compareSync(password, me.password)) {
         token = jwt.sign(
-          { _id: user._id, service: user.service, name: user.name },
+          { _id: me._id, service: me.service, name: me.name },
           process.env.JWT,
           {
             algorithm: "HS256",
@@ -215,7 +255,7 @@ const resolvers = {
           maxAge: 1 * 12 * 60 * 60 * 1000
         });
 
-        return { _id: user._id, service: user.service, name: user.name };
+        return { _id: me._id, service: me.service, name: me.name };
       }
       return null;
     },

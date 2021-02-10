@@ -55,7 +55,7 @@ const resolvers = {
           }
         },
         {
-          $limit: 10
+          $limit: 15
         }
       ]);
 

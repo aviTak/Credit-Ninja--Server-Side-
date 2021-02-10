@@ -15,7 +15,8 @@
     "jsonwebtoken": "^8.5.1",
     "request": "^2.88.2",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "validator": "^13.5.2"
   },
   "engines": {
     "node": "12.x"

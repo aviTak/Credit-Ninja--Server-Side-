@@ -84,7 +84,7 @@ const resolvers = {
 
       let options = {
         method: "GET",
-        url: `http://2factor.in/API/V1/${otpApi}/SMS/${number}/AUTOGEN`,
+        url: `http://2factor.in/API/V1/${otpApi}/SMS/${number}/AUTOGEN/Template1`,
         headers: { "content-type": "application/x-www-form-urlencoded" },
         form: {}
       };

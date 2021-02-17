@@ -223,7 +223,7 @@ const resolvers = {
 
       context.res.cookie("coffee", token, {
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "strict",
         secure: true,
         maxAge: 1 * 12 * 60 * 60 * 1000
       });
@@ -250,7 +250,7 @@ const resolvers = {
 
         context.res.cookie("coffee", token, {
           httpOnly: true,
-          sameSite: "none",
+          sameSite: "strict",
           secure: true,
           maxAge: 1 * 12 * 60 * 60 * 1000
         });
@@ -263,7 +263,7 @@ const resolvers = {
     logout: (_, args, context) => {
       context.res.cookie("coffee", 0, {
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "strict",
         secure: true,
         maxAge: 0
       });

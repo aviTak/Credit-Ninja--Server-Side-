@@ -34,12 +34,12 @@ const app = express();
 const port = process.env.PORT;
 
 // Allow cross-origin
-const whitelist = [process.env.DOMAIN, "http://localhost:3000"];
+const whitelist = [process.env.DOMAIN];
 
 const corsOptions = {
   origin: (origin, callback) => {
     // allow requests with no origin
-    if (!origin) return callback(null, true);
+    // if (!origin) return callback(null, true);
     if (whitelist.indexOf(origin) === -1) {
       var message = `Access denied`;
       return callback(message, false);
